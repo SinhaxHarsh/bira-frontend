@@ -77,14 +77,21 @@ export default function TaskCard({ task, reload, onClick }) {
   return (
     <div
       onClick={(e) => {
-        setShowNotes(false); 
-        onClick?.(task);     // 🔥 This opens the EditTaskModal
+        // Only open edit modal when clicking on the card background
+        if (
+          e.target.tagName !== "BUTTON" &&
+          e.target.tagName !== "INPUT" &&
+          e.target.tagName !== "TEXTAREA" &&
+          e.target.tagName !== "SPAN" &&
+          e.target.tagName !== "SVG"
+        ) {
+          setShowNotes(false);
+          onClick?.(task);
+        }
       }}
-  className={`p-4 rounded-xl shadow border hover:shadow-lg cursor-pointer transition 
+      className={`p-4 rounded-xl shadow border hover:shadow-lg cursor-pointer transition 
         flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 ${pinnedBg}`}
->
-
-
+    >
       {/* ================================
           LEFT SECTION (TITLE, INFO, NOTES)
          ================================ */}
@@ -120,7 +127,6 @@ export default function TaskCard({ task, reload, onClick }) {
 
         {/* ================================
             SEVERITY INFO POPUP
-            (Appears on hover)
            ================================ */}
         {showInfo && (
           <div
@@ -190,7 +196,6 @@ export default function TaskCard({ task, reload, onClick }) {
           RIGHT ACTION BUTTONS
          ================================ */}
       <div className="flex flex-row sm:flex-col gap-3 sm:gap-2 self-start sm:self-auto">
-
         {/* PIN */}
         <button
           onClick={async (e) => {
@@ -241,7 +246,6 @@ export default function TaskCard({ task, reload, onClick }) {
         >
           🗑
         </button>
-
       </div>
     </div>
   );
