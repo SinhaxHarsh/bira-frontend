@@ -12,15 +12,21 @@ import AboutApp from "./pages/AboutApp";
 
 export default function App() {
   useEffect(() => {
-    initCSRF();  // Fetch CSRF cookie on app start
+    // Run CSRF initialization safely
+    const loadCSRF = async () => {
+      await initCSRF();
+    };
+    loadCSRF();
   }, []);
 
   return (
     <MainLayout>
       <Routes>
+        {/* PUBLIC ROUTES */}
         <Route path="/" element={<Home />} />
         <Route path="/about-app" element={<AboutApp />} />
 
+        {/* PROTECTED ROUTE */}
         <Route
           path="/tasks"
           element={
@@ -30,6 +36,7 @@ export default function App() {
           }
         />
 
+        {/* AUTH ROUTES */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
       </Routes>
