@@ -77,17 +77,19 @@ export default function TaskCard({ task, reload, onClick }) {
   return (
     <div
       onClick={(e) => {
-        // Only open edit modal when clicking on the card background
+        // === THE ONLY CHANGE YOU REQUESTED ===
         if (
-          e.target.tagName !== "BUTTON" &&
-          e.target.tagName !== "INPUT" &&
-          e.target.tagName !== "TEXTAREA" &&
-          e.target.tagName !== "SPAN" &&
-          e.target.tagName !== "SVG"
+          e.target.tagName === "BUTTON" ||
+          e.target.tagName === "INPUT" ||
+          e.target.tagName === "TEXTAREA" ||
+          e.target.tagName === "SPAN"
         ) {
-          setShowNotes(false);
-          onClick?.(task);
+          return;
         }
+        // =======================================
+
+        setShowNotes(false);
+        onClick?.(task); // opens EditTaskModal
       }}
       className={`p-4 rounded-xl shadow border hover:shadow-lg cursor-pointer transition 
         flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 ${pinnedBg}`}
@@ -196,6 +198,7 @@ export default function TaskCard({ task, reload, onClick }) {
           RIGHT ACTION BUTTONS
          ================================ */}
       <div className="flex flex-row sm:flex-col gap-3 sm:gap-2 self-start sm:self-auto">
+
         {/* PIN */}
         <button
           onClick={async (e) => {
@@ -246,6 +249,7 @@ export default function TaskCard({ task, reload, onClick }) {
         >
           🗑
         </button>
+
       </div>
     </div>
   );
