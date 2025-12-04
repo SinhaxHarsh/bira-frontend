@@ -1,36 +1,24 @@
 // src/services/api.js
 import axios from "axios";
-const BASE = import.meta.env.VITE_API_URL + "/api/";
+
+const BASE = import.meta.env.VITE_API_URL || "https://graceful-embrace-production.up.railway.app/api/";
 
 const api = axios.create({
   baseURL: BASE,
-  withCredentials: true,
+  withCredentials: true,  // This is crucial for sending cookies
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// CSRF Cookie names
+// Remove the xsrf defaults and interceptor - let axios handle it automatically
 api.defaults.xsrfCookieName = "csrftoken";
 api.defaults.xsrfHeaderName = "X-CSRFToken";
-
-// Attach CSRF token on every request
-api.interceptors.request.use((config) => {
-  const csrfToken = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("csrftoken="))
-    ?.split("=")[1];
-
-  if (csrfToken) {
-    config.headers["X-CSRFToken"] = csrfToken;
-  }
-
-  return config;
-});
 
 // Fetch CSRF token on app start
 export async function initCSRF() {
   try {
+    // Make sure this endpoint exists in your Django backend
     await api.get("users/get-csrf/");
   } catch (err) {
     console.error("CSRF load failed", err);
