@@ -5,24 +5,37 @@ const BASE = import.meta.env.VITE_API_URL + "/api/";
 
 const api = axios.create({
   baseURL: BASE,
-  withCredentials: true,  // This is crucial for sending cookies
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Remove the xsrf defaults and interceptor - let axios handle it automatically
+// CSRF cookie defaults
 api.defaults.xsrfCookieName = "csrftoken";
 api.defaults.xsrfHeaderName = "X-CSRFToken";
 
-// Fetch CSRF token on app start
+// Fetch CSRF cookie
 export async function initCSRF() {
   try {
-    // Make sure this endpoint exists in your Django backend
     await api.get("users/get-csrf/");
   } catch (err) {
-    console.error("CSRF load failed", err);
+    console.warn("CSRF refresh failed", err);
   }
 }
+
+// 🔥 AUTO-CSRF INTERCEPTOR (THE REAL FIX)
+api.interceptors.request.use(async (config) => {
+  const method = config.method?.toUpperCase();
+
+  // Only refresh CSRF for unsafe methods
+  const needsCSRF = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+
+  if (needsCSRF) {
+    await initCSRF();  // Always refresh before modifying data
+  }
+
+  return config;
+});
 
 export default api;

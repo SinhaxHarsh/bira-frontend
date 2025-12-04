@@ -49,6 +49,7 @@ export async function fetchNotes(taskId) {
 }
 
 export async function createNote(taskId, content) {
+  await initCSRF(); // <-- REFRESH CSRF BEFORE POST (FIX)
   return (await api.post(`tasks/${taskId}/notes/`, { content })).data;
 }
 
