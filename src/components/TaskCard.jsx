@@ -77,14 +77,23 @@ export default function TaskCard({ task, reload, onClick }) {
   return (
     <div
       onClick={(e) => {
-        setShowNotes(false); 
-        onClick?.(task);     // 🔥 This opens the EditTaskModal
+        // === THE ONLY CHANGE YOU REQUESTED ===
+        if (
+          e.target.tagName === "BUTTON" ||
+          e.target.tagName === "INPUT" ||
+          e.target.tagName === "TEXTAREA" ||
+          e.target.tagName === "SPAN"
+        ) {
+          return;
+        }
+        // =======================================
+
+        setShowNotes(false);
+        onClick?.(task); // opens EditTaskModal
       }}
-  className={`p-4 rounded-xl shadow border hover:shadow-lg cursor-pointer transition 
+      className={`p-4 rounded-xl shadow border hover:shadow-lg cursor-pointer transition 
         flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 ${pinnedBg}`}
->
-
-
+    >
       {/* ================================
           LEFT SECTION (TITLE, INFO, NOTES)
          ================================ */}
@@ -120,7 +129,6 @@ export default function TaskCard({ task, reload, onClick }) {
 
         {/* ================================
             SEVERITY INFO POPUP
-            (Appears on hover)
            ================================ */}
         {showInfo && (
           <div
