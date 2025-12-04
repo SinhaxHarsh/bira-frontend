@@ -1,7 +1,7 @@
 // src/services/api.js
 import axios from "axios";
 
-const BASE = import.meta.env.VITE_API_URL || "https://graceful-embrace-production.up.railway.app/api/";
+const BASE = import.meta.env.VITE_API_URL + "/api/";
 
 const api = axios.create({
   baseURL: BASE,
