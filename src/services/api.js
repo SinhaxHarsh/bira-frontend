@@ -11,28 +11,33 @@ const api = axios.create({
   },
 });
 
-// CSRF cookie defaults
+// CSRF defaults
 api.defaults.xsrfCookieName = "csrftoken";
 api.defaults.xsrfHeaderName = "X-CSRFToken";
 
-// Fetch CSRF cookie
+
+// ------------------------------
+// FETCH CSRF TOKEN
+// ------------------------------
 export async function initCSRF() {
   try {
     await api.get("users/get-csrf/");
   } catch (err) {
-    console.warn("CSRF refresh failed", err);
+    console.warn("CSRF init failed", err);
   }
 }
 
-// 🔥 AUTO-CSRF INTERCEPTOR (THE REAL FIX)
+
+// ------------------------------
+// AUTO-CSRF FOR MUTATING REQUESTS
+// ------------------------------
 api.interceptors.request.use(async (config) => {
   const method = config.method?.toUpperCase();
+  const unsafe = ["POST", "PUT", "PATCH", "DELETE"];
 
   // Only refresh CSRF for unsafe methods
-  const needsCSRF = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
-
-  if (needsCSRF) {
-    await initCSRF();  // Always refresh before modifying data
+  if (unsafe.includes(method)) {
+    await initCSRF();
   }
 
   return config;
