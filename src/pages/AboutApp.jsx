@@ -22,10 +22,12 @@ export default function AboutApp() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
         >
-          Bira is a full-stack task manager built with React (frontend) and
-          Django (backend). It uses secure session-based authentication, CSRF
-          protection, strict CORS rules, and a background scheduler to send
-          automated email notifications based on task deadlines and severity.
+          Bira is a full-stack task manager built using React on the frontend and
+          Django REST Framework on the backend. Authentication is powered by a
+          modern and secure <strong>JWT-based system</strong>, replacing the older,
+          error-prone CSRF/session approach. The backend also includes a
+          production-ready scheduler to deliver automated email notifications such
+          as reminders and task updates.
         </motion.p>
       </header>
 
@@ -35,21 +37,21 @@ export default function AboutApp() {
       <section>
         <h2 className="text-2xl font-bold text-gray-800">Core Features</h2>
         <ul className="list-disc ml-6 mt-3 text-gray-600 leading-relaxed space-y-1">
-          <li>Create, update and delete tasks easily.</li>
+          <li>Create, update and delete tasks with ease.</li>
           <li>Assign severity levels (P0, P1, P2) based on urgency.</li>
-          <li>Pin tasks to keep them at the top.</li>
-          <li>Mark tasks as complete and manage them separately.</li>
-          <li>Add detailed notes to any task for context.</li>
+          <li>Pin important tasks to always keep them visible.</li>
+          <li>Track completion status and manage tasks effectively.</li>
+          <li>Add detailed notes to any task for extra clarity.</li>
           <li>Clean and responsive UI built with React + Tailwind CSS.</li>
         </ul>
       </section>
 
       {/* ===================== */}
-      {/* EMAIL & REMINDERS */}
+      {/* EMAIL SYSTEM */}
       {/* ===================== */}
       <section>
         <h2 className="text-2xl font-bold text-gray-800">
-          Email Notifications & Background Reminders
+          Email Notifications & Automated Scheduling
         </h2>
 
         <div className="mt-4 space-y-6 text-gray-600 leading-relaxed">
@@ -58,9 +60,9 @@ export default function AboutApp() {
           <div>
             <h3 className="font-semibold text-gray-800">📨 Welcome Email</h3>
             <p>
-              When a user signs up, Django immediately sends a clean HTML
-              <strong> welcome email</strong>. All email sending is handled via
-              Gmail SMTP using a secure app password.
+              When a user registers, they instantly receive a personalized
+              <strong> welcome email</strong>. Emails are powered through
+              SendGrid for high delivery reliability and scalability.
             </p>
           </div>
 
@@ -68,51 +70,48 @@ export default function AboutApp() {
           <div>
             <h3 className="font-semibold text-gray-800">🆕 Task Created Email</h3>
             <p>
-              Whenever you create a new task, the system sends a detailed
-              <strong> “Task Created”</strong> email with:
+              When you create a new task, the system sends a structured
+              <strong> task creation email</strong> that includes the title,
+              description, and deadline (if available).
             </p>
-            <ul className="list-disc ml-6 mt-2 space-y-1">
-              <li>Task title</li>
-              <li>Description</li>
-              <li>Deadline (if any)</li>
-            </ul>
           </div>
 
           {/* Deadline Reminder */}
           <div>
             <h3 className="font-semibold text-gray-800">⏰ Deadline Reminder</h3>
             <p>
-              If a task has a deadline, a reminder email is scheduled exactly
-              <strong> 1 hour before deadline</strong>. This uses a scheduled
-              APScheduler job that runs in the background.
+              For tasks with deadlines, an automated reminder email is scheduled
+              exactly <strong>1 hour before the deadline</strong>. This ensures
+              that no important task slips through.
             </p>
           </div>
 
-          {/* Severity Based Repeating Reminders */}
+          {/* Severity Reminders */}
           <div>
             <h3 className="font-semibold text-gray-800">
               🚨 Severity-Based Repeating Reminders
             </h3>
-            <p>The system sends recurring reminders depending on the severity:</p>
+            <p>
+              Depending on severity, Bira sends repeated reminder emails:
+            </p>
 
             <ul className="list-disc ml-6 mt-2 space-y-2">
               <li>
-                <strong>P0 (Critical):</strong> reminder every <strong>3 hours</strong> until the deadline.
+                <strong>P0 (Critical):</strong> every <strong>3 hours</strong>.
               </li>
               <li>
-                <strong>P1 (Medium):</strong> reminder every <strong>7 hours</strong> until the deadline.
+                <strong>P1 (Medium):</strong> every <strong>7 hours</strong>.
               </li>
               <li>
-                <strong>P2 (Low):</strong> reminder <strong>once every day</strong> until the deadline.
+                <strong>P2 (Low):</strong> once daily.
               </li>
             </ul>
 
             <p className="mt-2">
-              When severity is updated, all previous reminder jobs are cleared
-              and new ones are scheduled instantly.
+              When severity changes, all older reminder schedules are cleared and
+              new ones are created instantly — keeping everything accurate.
             </p>
           </div>
-
         </div>
       </section>
 
@@ -121,32 +120,35 @@ export default function AboutApp() {
       {/* ===================== */}
       <section>
         <h2 className="text-2xl font-bold text-gray-800">
-          Security & Session Management
+          Security & Authentication
         </h2>
 
         <div className="mt-4 space-y-6 text-gray-600 leading-relaxed">
 
-          {/* Session Auth */}
+          {/* JWT Auth */}
           <div>
-            <h3 className="font-semibold text-gray-800">🔐 Session Authentication</h3>
+            <h3 className="font-semibold text-gray-800">🔐 JWT Authentication</h3>
             <p>
-              Authentication is handled entirely through Django’s
-              server-managed <strong>session cookies</strong>:
+              Instead of slow, cookie-based sessions and CSRF tokens, Bira uses a
+              modern <strong>JWT authentication system</strong>:
             </p>
             <ul className="list-disc ml-6 mt-2 space-y-1">
-              <li>Browser automatically sends the session cookie.</li>
-              <li>No tokens stored in localStorage (safer against XSS).</li>
-              <li><code>/users/check-auth/</code> restores the session on reload.</li>
+              <li>Access Token: Valid for a short period for security.</li>
+              <li>Refresh Token: Stored safely on client and rotated when needed.</li>
+              <li>No CSRF issues, no cookie conflicts, no SameSite problems.</li>
             </ul>
+            <p className="mt-2">
+              This makes the app more secure, more scalable, and easier to deploy
+              across different platforms (Railway, Vercel, etc.).
+            </p>
           </div>
 
-          {/* CSRF */}
+          {/* API Security */}
           <div>
-            <h3 className="font-semibold text-gray-800">🛡️ CSRF Protection</h3>
+            <h3 className="font-semibold text-gray-800">🛡️ API Protection</h3>
             <p>
-              A <code>csrftoken</code> cookie is set and automatically attached
-              via an Axios interceptor. Every POST, PATCH, PUT and DELETE request
-              includes <code>X-CSRFToken</code>, ensuring strong CSRF defense.
+              Every task, note, and update request requires a valid JWT access
+              token. Unauthorized users cannot access any protected endpoint.
             </p>
           </div>
 
@@ -154,23 +156,21 @@ export default function AboutApp() {
           <div>
             <h3 className="font-semibold text-gray-800">🌐 Strict CORS Rules</h3>
             <p>
-              Only trusted frontend origins (e.g.{" "}
-              <code>http://localhost:5173</code>) can access the backend. All
-              unknown domains are blocked automatically.
+              Only approved frontend domains (e.g.
+              <code> bira-frontend-xxxx.vercel.app </code>) can communicate with
+              the backend. All other origins are blocked by default.
             </p>
           </div>
 
-          {/* Cookies */}
+          {/* Scheduler */}
           <div>
-            <h3 className="font-semibold text-gray-800">🍪 Cookie Security</h3>
+            <h3 className="font-semibold text-gray-800">🕒 Background Scheduler</h3>
             <p>
-              Cookies use <strong>SameSite=Lax</strong> and Django session
-              cookies are <strong>HttpOnly</strong> for protection against
-              client-side attacks. In production, HTTPS and Secure cookies can be
-              enabled.
+              A persistent APScheduler worker handles all email reminders and
+              recurring jobs, ensuring reliability even during long-running
+              deployments.
             </p>
           </div>
-
         </div>
       </section>
 
@@ -178,12 +178,12 @@ export default function AboutApp() {
       {/* WHY IT MATTERS */}
       {/* ===================== */}
       <section>
-        <h2 className="text-2xl font-bold text-gray-800">Why It All Matters</h2>
+        <h2 className="text-2xl font-bold text-gray-800">Why This Matters</h2>
         <p className="mt-3 text-gray-600 leading-relaxed">
-          Your tasks contain sensitive personal and professional information.
-          Strong security, automatic background reminders, and reliable
-          scheduling ensure that your data stays safe — while helping you stay
-          productive without missing important deadlines.
+          Tasks often contain private and time-sensitive information. Using JWT
+          authentication, secure APIs, and automated reminders ensures that your
+          workflow stays protected, organized, and efficient — without any manual
+          follow-ups or missed deadlines.
         </p>
       </section>
 
