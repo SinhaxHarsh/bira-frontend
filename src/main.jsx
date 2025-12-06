@@ -6,26 +6,26 @@ import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { Toaster } from "react-hot-toast";
-import { initCSRF } from "./services/api"; // ← import here
+import { initCSRF } from "./services/api";  // ← import here
 
-// Tiny component that runs CSRF init exactly once on app mount
-function CSRFInitializer() {
+// This runs ONCE and waits for CSRF cookie before anything else
+function AppInitializer() {
   useEffect(() => {
-    initCSRF().catch((err) => {
-      console.warn("Failed to initialize CSRF token (non-blocking)", err);
+    initCSRF().then(() => {
+      console.log("CSRF ready — safe to make requests");
     });
   }, []);
 
-  return null; // renders nothing
+  return null;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <CSRFInitializer />        {/* ← This guarantees CSRF cookie is set early */}
+        <AppInitializer />    {/* ← This fixes everything */}
         <App />
-        <Toaster position="top-center" reverseOrder={false} />
+        <Toaster position="top-center" />
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
