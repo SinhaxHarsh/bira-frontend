@@ -1,7 +1,5 @@
-// src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
 import { loginUser, logoutUser, checkAuth } from "../services/authServices";
-import { initCSRF } from "../services/api";
 import toast from "react-hot-toast";
 
 const AuthContext = createContext();
@@ -10,42 +8,54 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Restore session from backend
+  // Restore login session if token exists
   const restoreSession = async () => {
+    const access = localStorage.getItem("access");
+
+    if (!access) {
+      setUser(null);
+      return;
+    }
+
     const data = await checkAuth();
-    if (data.isAuthenticated) setUser(data.user);
-    else setUser(null);
+
+    if (data.isAuthenticated) {
+      setUser(data.user);
+    } else {
+      setUser(null);
+    }
   };
 
-  // Run once on app load
   useEffect(() => {
-    (async () => {
-      await initCSRF();        // ensures csrftoken exists
-      await restoreSession();  // ensures session restored if user logged in
-      setLoading(false);
-    })();
+    restoreSession().finally(() => setLoading(false));
   }, []);
 
   // LOGIN
   const login = async ({ email, password }) => {
     try {
-      await initCSRF(); // fresh CSRF before login
-      await loginUser({ email, password });
-      await restoreSession();
+      const res = await loginUser({ email, password });
+
+      localStorage.setItem("access", res.tokens.access);
+      localStorage.setItem("refresh", res.tokens.refresh);
+
+      setUser(res.user);
+
       toast.success("Login successful");
-    } catch (err) {
-      const msg =
-        err?.response?.data?.error ||
-        err?.response?.data?.detail ||
-        "Login failed";
-      toast.error(msg);
-      throw err;
+    } catch (error) {
+      toast.error(error?.response?.data?.error || "Login failed");
+      throw error;
     }
   };
 
   // LOGOUT
   const logout = async () => {
-    await logoutUser();
+    try {
+      await logoutUser();
+    } catch (e) {}
+
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+
     setUser(null);
   };
 
@@ -53,11 +63,10 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
         loading,
+        isAuthenticated: !!user,
         login,
         logout,
-        refreshUser: restoreSession,
       }}
     >
       {children}

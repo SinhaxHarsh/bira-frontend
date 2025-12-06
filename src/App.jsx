@@ -1,7 +1,4 @@
 import { Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
-import { initCSRF } from "./services/api";
-
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
 import Tasks from "./pages/Tasks";
