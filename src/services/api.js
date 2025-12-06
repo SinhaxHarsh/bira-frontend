@@ -6,35 +6,42 @@ const BASE = import.meta.env.VITE_API_URL + "/api/";
 const api = axios.create({
   baseURL: BASE,
   withCredentials: true,
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-const getCookie = (name) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(";").shift();
+// GET CSRF TOKEN FROM COOKIE — BULLETPROOF
+const getCsrfToken = () => {
+  const name = "csrftoken";
+  const cookies = document.cookie.split(';');
+  for (let cookie of cookies) {
+    const [key, value] = cookie.trim().split('=');
+    if (key === name) return decodeURIComponent(value);
+  }
   return null;
 };
 
+// FETCH CSRF COOKIE ONCE
 export const initCSRF = async () => {
   try {
     await api.get("users/get-csrf/");
-    console.log("CSRF cookie set — token ready");
+    console.log("CSRF cookie set");
   } catch (err) {
     console.warn("CSRF init failed", err);
   }
 };
 
-// THIS IS THE FIX — force lowercase method check + always add header
+// INTERCEPTOR — FORCE X-CSRFToken HEADER ON EVERY POST/PATCH/DELETE
 api.interceptors.request.use((config) => {
   const method = config.method?.toLowerCase();
-  if (["post", "put", "patch", "delete"].includes(method)) {
-    const token = getCookie("csrftoken");
+  if (["post", "patch", "put", "delete"].includes(method)) {
+    const token = getCsrfToken();
     if (token) {
       config.headers["X-CSRFToken"] = token;
-      console.log("X-CSRFToken header added:", token.substring(0, 10) + "...");
+      console.log("X-CSRFToken header added");
     } else {
-      console.error("CSRF token missing from cookie!");
+      console.error("CSRF token not found in cookie!");
     }
   }
   return config;
