@@ -28,19 +28,4 @@ export async function initCSRF() {
 }
 
 
-// ------------------------------
-// AUTO-CSRF FOR MUTATING REQUESTS
-// ------------------------------
-api.interceptors.request.use(async (config) => {
-  const method = config.method?.toUpperCase();
-  const unsafe = ["POST", "PUT", "PATCH", "DELETE"];
-
-  // Only refresh CSRF for unsafe methods
-  if (unsafe.includes(method)) {
-    await initCSRF();
-  }
-
-  return config;
-});
-
 export default api;
