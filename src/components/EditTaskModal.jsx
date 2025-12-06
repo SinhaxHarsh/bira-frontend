@@ -8,7 +8,7 @@ import {
   deleteNote,
 } from "../services/taskServices";
 
-// Helper
+// Convert backend datetime → input format
 function toInputDateTime(value) {
   if (!value) return "";
   const d = new Date(value);
@@ -48,7 +48,7 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
   const sliderToSeverity = { 0: "P2", 1: "P1", 2: "P0" };
   const severityToSlider = { P2: 0, P1: 1, P0: 2 };
 
-  // Load task details
+  // Load task into fields
   useEffect(() => {
     if (task) {
       setSeverity(task.severity || "P2");
@@ -59,7 +59,7 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
     }
   }, [task]);
 
-  // Load Notes
+  // Load notes
   useEffect(() => {
     if (!open || !task.id) return;
 
@@ -78,6 +78,7 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
     loadNotes();
   }, [open, task]);
 
+  // Update task
   const handleUpdate = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -91,7 +92,7 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
         pinned_task: pinned,
       });
 
-      toast.success("Task updated");
+      toast.success("Task updated!");
       onUpdated?.();
       onClose();
     } catch (err) {
@@ -132,31 +133,28 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-center items-start md:items-center pt-10 md:pt-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/40 flex justify-center items-start md:items-center z-50 overflow-y-auto pt-10 md:pt-0">
       <motion.div
-        initial={{ opacity: 0, scale: 0.97, y: 10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-0 md:p-0 overflow-hidden"
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden"
       >
         {/* HEADER */}
-        <div className="px-6 py-5 border-b bg-gray-50 flex justify-between items-start">
-          <div>
-            <h2 className="text-xl font-bold">Edit Task</h2>
-            <p className="text-sm text-gray-500">
-              Modify task settings, severity, schedule & notes.
-            </p>
-          </div>
-          <button onClick={onClose} className="text-gray-500 text-xl">
-            ×
-          </button>
+        <div className="px-6 py-5 border-b bg-gray-50 flex justify-between items-center">
+          <h2 className="text-2xl font-semibold text-gray-800">Edit Task</h2>
+          <button onClick={onClose} className="text-gray-500 text-2xl">×</button>
         </div>
 
+        {/* BODY SPLIT GRID */}
         <div className="grid md:grid-cols-2">
-          {/* LEFT PANEL */}
-          <div className="px-6 py-6 space-y-7 border-r">
+
+          {/* ============================== */}
+          {/* LEFT PANEL — MAIN FIELDS     */}
+          {/* ============================== */}
+          <div className="px-6 py-6 space-y-6">
 
             {/* Title box */}
-            <div className="p-4 bg-gray-50 rounded-xl border">
+            <div className="p-4 rounded-xl bg-gray-50 border">
               <h3 className="font-semibold text-gray-900">{task.title}</h3>
               {task.description && (
                 <p className="text-xs text-gray-600 mt-1">{task.description}</p>
@@ -182,7 +180,7 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
               <button
                 type="button"
                 onClick={() => setPinned((p) => !p)}
-                className="flex items-center justify-between border rounded-lg px-3 py-2"
+                className="w-full flex items-center justify-between border px-4 py-2 rounded-lg"
               >
                 <span className="text-sm">{pinned ? "Pinned" : "Not pinned"}</span>
                 <div
@@ -191,7 +189,7 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
                   }`}
                 >
                   <div
-                    className={`h-4 w-4 bg-white rounded-full transition ${
+                    className={`w-4 h-4 bg-white rounded-full transition ${
                       pinned ? "translate-x-5" : ""
                     }`}
                   />
@@ -201,31 +199,39 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
 
             {/* Severity */}
             <div>
-              <label className="text-sm font-medium">Severity</label>
-              <div className="mt-1">
+              <label className="block text-sm font-medium mb-1">Severity</label>
+
+              <div className="mb-2">
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    severity === "P0"
-                      ? "bg-red-100 text-red-700"
-                      : severity === "P1"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-green-100 text-green-700"
-                  }`}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold
+                    ${severity === "P0" ? "bg-red-600 text-white" : ""}
+                    ${severity === "P1" ? "bg-yellow-400 text-black" : ""}
+                    ${severity === "P2" ? "bg-green-600 text-white" : ""}`}
                 >
-                  {severity} Priority
+                  {severity === "P0" && "😬 High Priority (P0)"}
+                  {severity === "P1" && "🙁 Medium Priority (P1)"}
+                  {severity === "P2" && "😎 Low Priority (P2)"}
                 </span>
               </div>
 
-              <input
-                type="range"
-                min="0"
-                max="2"
-                value={severityToSlider[severity]}
-                onChange={(e) =>
-                  setSeverity(sliderToSeverity[e.target.value])
-                }
-                className="w-full mt-3 accent-blue-600"
-              />
+              <div>
+                <input
+                  type="range"
+                  min="0"
+                  max="2"
+                  value={severityToSlider[severity]}
+                  onChange={(e) =>
+                    setSeverity(sliderToSeverity[e.target.value])
+                  }
+                  className="w-full h-2 rounded-lg cursor-pointer bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 shadow-inner"
+                />
+
+                <div className="flex justify-between w-full mt-2 text-xs font-medium">
+                  <span className={severity === "P2" ? "text-green-600 font-bold" : ""}>LOW</span>
+                  <span className={severity === "P1" ? "text-yellow-600 font-bold" : ""}>MEDIUM</span>
+                  <span className={severity === "P0" ? "text-red-600 font-bold" : ""}>HIGH</span>
+                </div>
+              </div>
             </div>
 
             {/* Start Time */}
@@ -238,7 +244,7 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
                 onChange={(e) => {
                   const newStart = e.target.value;
                   if (deadline && new Date(newStart) > new Date(deadline)) {
-                    toast.error("Start time cannot be after deadline");
+                    toast.error("Start cannot be after deadline");
                     return;
                   }
                   setStart(newStart);
@@ -265,15 +271,18 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
             </div>
           </div>
 
-          {/* RIGHT PANEL (NOTES) */}
-          <div className="px-6 py-6 bg-gray-50">
-            <div className="flex justify-between mb-3">
-              <h3 className="font-semibold text-gray-900 text-sm">Notes</h3>
-              {notesLoading && <span className="text-xs">Loading...</span>}
+          {/* ============================== */}
+          {/* RIGHT PANEL — NOTES           */}
+          {/* ============================== */}
+          <div className="px-6 py-6 bg-gray-50 space-y-4">
+
+            <div className="flex justify-between">
+              <h3 className="font-semibold text-gray-800 text-md">Notes</h3>
+              {notesLoading && <span className="text-xs text-gray-500">Loading...</span>}
             </div>
 
             {/* Add note */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={newNote}
@@ -284,13 +293,13 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
               <button
                 onClick={handleAddNote}
                 disabled={addingNote}
-                className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm"
               >
                 {addingNote ? "..." : "Add"}
               </button>
             </div>
 
-            {/* Notes List */}
+            {/* Notes list */}
             <div className="space-y-2 max-h-[330px] overflow-y-auto pr-1">
               {notes.length === 0 ? (
                 <p className="text-xs text-gray-500">No notes yet.</p>
@@ -298,13 +307,14 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
                 notes.map((note) => (
                   <div
                     key={note.id}
-                    className="bg-white border rounded-lg px-3 py-2 flex justify-between"
+                    className="bg-white border rounded-lg px-3 py-2 flex justify-between items-start"
                   >
-                    <p className="text-xs text-gray-800">{note.content}</p>
+                    <p className="text-sm text-gray-800">{note.content}</p>
+
                     <button
                       onClick={() => handleDeleteNote(note.id)}
                       disabled={deletingNoteId === note.id}
-                      className="text-xs text-red-500"
+                      className="text-xs text-red-500 ml-3"
                     >
                       {deletingNoteId === note.id ? "..." : "✕"}
                     </button>
@@ -315,11 +325,11 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
           </div>
         </div>
 
-        {/* FOOTER BUTTONS */}
+        {/* FOOTER */}
         <div className="flex justify-end gap-3 px-6 py-4 border-t bg-white">
           <button
             onClick={onClose}
-            className="px-4 py-2 border rounded-lg text-sm bg-white hover:bg-gray-100"
+            className="px-4 py-2 border rounded-lg text-sm bg-gray-100 hover:bg-gray-200"
           >
             Cancel
           </button>
