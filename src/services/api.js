@@ -9,7 +9,6 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Simple cookie reader
 const getCookie = (name) => {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -17,22 +16,25 @@ const getCookie = (name) => {
   return null;
 };
 
-// Call this once at app start
 export const initCSRF = async () => {
   try {
     await api.get("users/get-csrf/");
-    console.log("CSRF cookie set");
+    console.log("CSRF cookie set — token ready");
   } catch (err) {
     console.warn("CSRF init failed", err);
   }
 };
 
-// Auto-add X-CSRFToken header
+// THIS IS THE FIX — force lowercase method check + always add header
 api.interceptors.request.use((config) => {
-  if (["post", "put", "patch", "delete"].includes(config.method?.toLowerCase())) {
+  const method = config.method?.toLowerCase();
+  if (["post", "put", "patch", "delete"].includes(method)) {
     const token = getCookie("csrftoken");
     if (token) {
       config.headers["X-CSRFToken"] = token;
+      console.log("X-CSRFToken header added:", token.substring(0, 10) + "...");
+    } else {
+      console.error("CSRF token missing from cookie!");
     }
   }
   return config;
