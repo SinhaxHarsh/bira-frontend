@@ -1,7 +1,3 @@
-// ======================================================
-// EditTaskModal.jsx (Professional Two-Column Layout)
-// ======================================================
-
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
@@ -12,11 +8,11 @@ import {
   deleteNote,
 } from "../services/taskServices";
 
+// Helper
 function toInputDateTime(value) {
   if (!value) return "";
   const d = new Date(value);
   if (isNaN(d.getTime())) return "";
-
   const pad = (n) => String(n).padStart(2, "0");
 
   return (
@@ -48,9 +44,11 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
   const [addingNote, setAddingNote] = useState(false);
   const [deletingNoteId, setDeletingNoteId] = useState(null);
 
+  // Severity slider mapping
   const sliderToSeverity = { 0: "P2", 1: "P1", 2: "P0" };
   const severityToSlider = { P2: 0, P1: 1, P0: 2 };
 
+  // Load task details
   useEffect(() => {
     if (task) {
       setSeverity(task.severity || "P2");
@@ -61,10 +59,11 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
     }
   }, [task]);
 
+  // Load Notes
   useEffect(() => {
     if (!open || !task.id) return;
 
-    const load = async () => {
+    const loadNotes = async () => {
       try {
         setNotesLoading(true);
         const data = await fetchNotes(task.id);
@@ -75,7 +74,8 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
         setNotesLoading(false);
       }
     };
-    load();
+
+    loadNotes();
   }, [open, task]);
 
   const handleUpdate = async (e) => {
@@ -96,9 +96,9 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
       onClose();
     } catch (err) {
       toast.error(
-        err.response?.data?.error ||
-          err.response?.data?.detail ||
-          "Failed to update task"
+        err.response?.data?.error ??
+          err.response?.data?.detail ??
+          "Update failed"
       );
     } finally {
       setSaving(false);
@@ -107,14 +107,13 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return toast.error("Note cannot be empty");
-
     try {
       setAddingNote(true);
       const created = await createNote(task.id, newNote.trim());
-      setNotes((prev) => [created, ...prev]);
+      setNotes((n) => [created, ...n]);
       setNewNote("");
     } catch {
-      toast.error("Failed to add note");
+      toast.error("Unable to add note");
     } finally {
       setAddingNote(false);
     }
@@ -124,7 +123,7 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
     try {
       setDeletingNoteId(id);
       await deleteNote(id);
-      setNotes((prev) => prev.filter((n) => n.id !== id));
+      setNotes((n) => n.filter((x) => x.id !== id));
     } catch {
       toast.error("Failed to delete note");
     } finally {
@@ -132,92 +131,78 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
     }
   };
 
-  // ======================================================
-  // PROFESSIONAL TWO-COLUMN UI
-  // ======================================================
-
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-center overflow-y-auto py-10 z-50">
+    <div className="fixed inset-0 bg-black/40 flex justify-center items-start md:items-center pt-10 md:pt-0 z-50 overflow-y-auto">
       <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-6 md:p-8"
+        initial={{ opacity: 0, scale: 0.97, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-0 md:p-0 overflow-hidden"
       >
         {/* HEADER */}
-        <div className="flex justify-between items-start mb-6">
+        <div className="px-6 py-5 border-b bg-gray-50 flex justify-between items-start">
           <div>
-            <h2 className="text-2xl font-bold">Edit Task</h2>
+            <h2 className="text-xl font-bold">Edit Task</h2>
             <p className="text-sm text-gray-500">
-              Modify task settings, schedule & notes.
+              Modify task settings, severity, schedule & notes.
             </p>
           </div>
-          <button
-            className="text-gray-400 hover:text-gray-600 text-3xl -mt-2"
-            onClick={onClose}
-          >
+          <button onClick={onClose} className="text-gray-500 text-xl">
             ×
           </button>
         </div>
 
-        {/* TITLE BLOCK */}
-        <div className="border rounded-xl bg-gray-50 px-4 py-3 mb-6">
-          <h3 className="text-base font-semibold">{task.title}</h3>
-          {task.description && (
-            <p className="text-sm text-gray-500 mt-1">{task.description}</p>
-          )}
-        </div>
+        <div className="grid md:grid-cols-2">
+          {/* LEFT PANEL */}
+          <div className="px-6 py-6 space-y-7 border-r">
 
-        {/* TWO-COLUMN LAYOUT */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          {/* LEFT SIDE — SETTINGS */}
-          <form onSubmit={handleUpdate} className="space-y-6">
-
-            {/* TASK TYPE & PIN */}
-            <div className="grid grid-cols-1 gap-5">
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Task Type</label>
-                <select
-                  value={taskType}
-                  onChange={(e) => setTaskType(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
-                >
-                  <option value="PERSONAL">Personal Work</option>
-                  <option value="OFFICIAL">Official Work</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Pin Task</label>
-
-                <button
-                  type="button"
-                  onClick={() => setPinned((p) => !p)}
-                  className="flex items-center justify-between px-4 py-2 border rounded-lg bg-white hover:bg-gray-50 w-full"
-                >
-                  <span className="text-sm">{pinned ? "Pinned" : "Not pinned"}</span>
-
-                  <div
-                    className={`w-11 h-6 rounded-full flex items-center p-1 transition ${
-                      pinned ? "bg-blue-600" : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`h-4 w-4 bg-white rounded-full transition ${
-                        pinned ? "translate-x-5" : ""
-                      }`}
-                    />
-                  </div>
-                </button>
-              </div>
+            {/* Title box */}
+            <div className="p-4 bg-gray-50 rounded-xl border">
+              <h3 className="font-semibold text-gray-900">{task.title}</h3>
+              {task.description && (
+                <p className="text-xs text-gray-600 mt-1">{task.description}</p>
+              )}
             </div>
 
-            {/* SEVERITY */}
+            {/* Task Type */}
             <div>
-              <label className="text-sm font-medium mb-1">Severity</label>
+              <label className="block text-sm font-medium mb-1">Task Type</label>
+              <select
+                value={taskType}
+                onChange={(e) => setTaskType(e.target.value)}
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="PERSONAL">Personal Work</option>
+                <option value="OFFICIAL">Official Work</option>
+              </select>
+            </div>
 
-              <div className="mb-2">
+            {/* Pin Toggle */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Pin Task</label>
+              <button
+                type="button"
+                onClick={() => setPinned((p) => !p)}
+                className="flex items-center justify-between border rounded-lg px-3 py-2"
+              >
+                <span className="text-sm">{pinned ? "Pinned" : "Not pinned"}</span>
+                <div
+                  className={`w-11 h-6 rounded-full p-1 flex items-center transition ${
+                    pinned ? "bg-blue-600" : "bg-gray-300"
+                  }`}
+                >
+                  <div
+                    className={`h-4 w-4 bg-white rounded-full transition ${
+                      pinned ? "translate-x-5" : ""
+                    }`}
+                  />
+                </div>
+              </button>
+            </div>
+
+            {/* Severity */}
+            <div>
+              <label className="text-sm font-medium">Severity</label>
+              <div className="mt-1">
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-semibold ${
                     severity === "P0"
@@ -239,62 +224,56 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
                 onChange={(e) =>
                   setSeverity(sliderToSeverity[e.target.value])
                 }
-                className="w-full h-2 rounded-lg bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 cursor-pointer"
+                className="w-full mt-3 accent-blue-600"
               />
             </div>
 
-            {/* TIME */}
-            <div className="grid grid-cols-1 gap-5">
-              <div>
-                <label className="block text-sm font-medium mb-1">Start Time</label>
-                <input
-                  type="datetime-local"
-                  value={start}
-                  onChange={(e) => setStart(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Deadline</label>
-                <input
-                  type="datetime-local"
-                  value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
-                />
-              </div>
+            {/* Start Time */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Start Time</label>
+              <input
+                type="datetime-local"
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+                value={start}
+                onChange={(e) => {
+                  const newStart = e.target.value;
+                  if (deadline && new Date(newStart) > new Date(deadline)) {
+                    toast.error("Start time cannot be after deadline");
+                    return;
+                  }
+                  setStart(newStart);
+                }}
+              />
             </div>
 
-            {/* BUTTONS */}
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border rounded-lg text-sm bg-white hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={saving}
-                className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm disabled:opacity-60"
-              >
-                {saving ? "Saving..." : "Save Changes"}
-              </button>
+            {/* Deadline */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Deadline</label>
+              <input
+                type="datetime-local"
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+                value={deadline}
+                onChange={(e) => {
+                  const newDeadline = e.target.value;
+                  if (start && new Date(newDeadline) < new Date(start)) {
+                    toast.error("Deadline cannot be before start");
+                    return;
+                  }
+                  setDeadline(newDeadline);
+                }}
+              />
             </div>
-          </form>
+          </div>
 
-          {/* RIGHT SIDE — NOTES */}
-          <div className="border rounded-xl p-4 bg-gray-50 h-full flex flex-col">
-
+          {/* RIGHT PANEL (NOTES) */}
+          <div className="px-6 py-6 bg-gray-50">
             <div className="flex justify-between mb-3">
-              <h3 className="text-sm font-semibold">Notes</h3>
+              <h3 className="font-semibold text-gray-900 text-sm">Notes</h3>
               {notesLoading && <span className="text-xs">Loading...</span>}
             </div>
 
-            {/* ADD NOTE */}
-            <div className="flex gap-2 mb-3">
+            {/* Add note */}
+            <div className="flex gap-2 mb-4">
               <input
                 type="text"
                 value={newNote}
@@ -303,7 +282,6 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
                 className="flex-1 border rounded-lg px-3 py-2 text-sm"
               />
               <button
-                type="button"
                 onClick={handleAddNote}
                 disabled={addingNote}
                 className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm"
@@ -312,22 +290,21 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
               </button>
             </div>
 
-            {/* NOTES LIST */}
-            <div className="space-y-2 overflow-y-auto pr-1 flex-1">
+            {/* Notes List */}
+            <div className="space-y-2 max-h-[330px] overflow-y-auto pr-1">
               {notes.length === 0 ? (
                 <p className="text-xs text-gray-500">No notes yet.</p>
               ) : (
                 notes.map((note) => (
                   <div
                     key={note.id}
-                    className="flex justify-between items-start bg-white border rounded-lg px-3 py-2"
+                    className="bg-white border rounded-lg px-3 py-2 flex justify-between"
                   >
                     <p className="text-xs text-gray-800">{note.content}</p>
-
                     <button
                       onClick={() => handleDeleteNote(note.id)}
                       disabled={deletingNoteId === note.id}
-                      className="text-xs text-red-500 ml-2"
+                      className="text-xs text-red-500"
                     >
                       {deletingNoteId === note.id ? "..." : "✕"}
                     </button>
@@ -336,6 +313,23 @@ export default function EditTaskModal({ open, onClose, task, onUpdated }) {
               )}
             </div>
           </div>
+        </div>
+
+        {/* FOOTER BUTTONS */}
+        <div className="flex justify-end gap-3 px-6 py-4 border-t bg-white">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border rounded-lg text-sm bg-white hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleUpdate}
+            disabled={saving}
+            className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm disabled:opacity-60"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
         </div>
       </motion.div>
     </div>
